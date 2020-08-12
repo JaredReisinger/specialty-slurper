@@ -1,14 +1,7 @@
 plugins:
   - '@semantic-release/commit-analyzer'
   - '@semantic-release/release-notes-generator'
-  - - '@semantic-release/changelog'
-    - changelogFile: src/CHANGELOG.md
-  - - '@semantic-release/npm'
-    - npmPublish: false
-  - - '@semantic-release/github'
-    - githubUrl: 'https://gitea.spudnoggin.com'
-      githubApiPathPrefix: '/api/v1'
-      successComment: false
-      failTitle: false
-      failComment: false
+  - '@semantic-release/changelog'
+  - '@semantic-release/npm'
+  - '@semantic-release/github'
   - '@semantic-release/git'
