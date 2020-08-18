@@ -14,7 +14,7 @@ rules:
   no-param-reassign:
     - error
     - props: true
-      ignorePropertyModificationsFor: [draft]
+      ignorePropertyModificationsFor: [draft, memo, acc]
   no-underscore-dangle:
     - error
     - allowAfterThis: true

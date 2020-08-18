@@ -34,3 +34,6 @@ request -> bent (?)
 sprintf-js -> XXXXXX
 throttled-request -> XXXX?
 underscore(.string) -> XXXX?
+
+add "specialty-slurper cache ..." commands to manage the cache?
+add "specialty-slurper config ..." commands to manage the config?
