@@ -14,7 +14,7 @@ export default function createLogger(verbosity, logFile) {
       level: verbosityLevels[verbosity] || verbosityLevels.slice(-1)[0],
       prettyPrint: !logFile ? prettyOptions : null,
     },
-    process.stdout, // pino.destination(logFile || 1),
+    pino.destination(logFile || 1),
   );
   return logger;
 }

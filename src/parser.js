@@ -52,7 +52,7 @@ export function parseEventPage(page, logger) {
 
       // From the section, we crawl into the table to get link to the per-breed
       // results.  This is based entirely on the HTML structure of the page.
-      const breedLabel = $('table td[colspan="4"] strong a strong');
+      const breedLabel = $('table td[colspan="4"] strong a strong', section);
 
       // the result page link is the parent (a) element, crammed into a
       // Javascript handler
@@ -161,7 +161,13 @@ export function parseResultPage(page, logger) {
 
   logger.trace({ sorted }, 'sorted');
 
-  // Now build up a nested data structure that looks like:
+  const results = buildResultsFromKinds(sorted, logger);
+
+  return { ...info, ...results };
+}
+
+export function buildResultsFromKinds(sortedKindData, logger) {
+  // Build up a nested data structure that looks like:
   /*
     {
       sections: [{
@@ -182,7 +188,7 @@ export function parseResultPage(page, logger) {
   // data intervenes (this happens for the Breed Winners, like BOB, etc.).  We
   // also perform some data normalization here, rather than asking the report
   // renderer to do it.
-  const results = sorted.reduce(
+  const results = sortedKindData.reduce(
     (memo, { kind, text }) => {
       const [
         ,
@@ -277,7 +283,7 @@ export function parseResultPage(page, logger) {
 
       return memo;
     },
-    { temp: { current: {}, winnerAbbrevs: {} } },
+    { sections: [], temp: { current: {}, winnerAbbrevs: {} } },
   );
 
   // remove the temporary tracking info
@@ -291,8 +297,7 @@ export function parseResultPage(page, logger) {
   }
 
   logger.trace({ results }, 'extracted results');
-
-  return { ...info, ...results };
+  return results;
 }
 
 // We also perform some normalizing...
@@ -342,7 +347,7 @@ function normalizeClass(className) {
 // parser doesn't choke.  Event worse is that different kinds of page are
 // invalid in different ways, so we have a couple of "pre-parsing" cleaners.
 
-function extractDatePage(page, logger) {
+export function extractDatePage(page, logger) {
   // Find the *second* "<!doctype", and only include that part of the document.
   // Everything before that is header! (We use a negative lookbehind for "/' to
   // avoid matching doctype in strings/script.)
@@ -362,7 +367,7 @@ function extractDatePage(page, logger) {
   return extractedHtml;
 }
 
-function extractEventPage(page, logger) {
+export function extractEventPage(page, logger) {
   // Find the *second* "<html", and only include that part of the document.
   // Everything before that is header! (We use a negative lookbehind for "/' to
   // avoid matching doctype in strings/script.)

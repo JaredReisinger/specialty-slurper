@@ -4,3 +4,7 @@ coverage/
 .cache/
 
 npm-debug.log*
+
+# ignore CSV files by default...
+# they are probably from running local ad-hoc tests!
+*.csv

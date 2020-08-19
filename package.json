@@ -8,13 +8,17 @@
   "repository": "github:JaredReisinger/specialty-slurper",
   "bugs": "https://github.com/JaredReisinger/specialty-slurper/issues",
   "type": "module",
-  "main": "src/index.js",
+  "main": "src/slurper.js",
   "bin": "src/cli.js",
+  "files": [
+    "src/",
+    "!**/*.test.*"
+  ],
   "scripts": {
     "start": "node ./src/cli.js",
     "test": "ava --verbose",
     "test:watch": "npm run test -- --watch",
-    "test:coverage": "c8 --all --src src --exclude cli.js --exclude '**/*.test.js' npm run test",
+    "test:coverage": "c8 --all --src src --exclude cli.js --exclude '**/*.test.js' --reporter lcov --reporter text npm run test",
     "lint": "eslint --ext js,mjs --ignore-path .prettierignore ."
   },
   "dependencies": {

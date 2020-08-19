@@ -1,9 +1,3 @@
-export function delay(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms, true);
-  });
-}
-
 export function identity(x) {
   return x;
 }
