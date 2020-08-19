@@ -1,7 +1,7 @@
 import json2csv from 'json2csv';
 
 // eslint-disable-next-line import/prefer-default-export
-export function reportResults(results, formatPublishing) {
+export function generateReport(results, formatPublishing) {
   // console.log(
   //   csvLine('Event', 'Section', 'Class', 'Placement', 'Name', 'Owner'),
   // );
@@ -12,10 +12,7 @@ export function reportResults(results, formatPublishing) {
   );
 
   const csv = json2csv.parse(lines);
-  // eslint-disable-next-line no-console
-  console.log(csv);
-
-  // console.log(resultLineSets.join('\n'));
+  return csv;
 }
 
 // TODO: make the "publishing" format and default format a more configurable
@@ -107,8 +104,3 @@ function linesFromPlacement(placement, formatPublishing) {
 
   return [line];
 }
-
-// // minimal CSV formatting
-// function csvLine(...args) {
-//   return args.map((arg) => `"${arg ? arg.replace(/"/g, '""') : ''}"`).join(',');
-// }

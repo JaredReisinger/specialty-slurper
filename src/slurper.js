@@ -1,3 +1,4 @@
+import { writeFile } from 'fs/promises';
 // luxon doesn't have true ESM exports yet
 import luxon from 'luxon';
 
@@ -11,7 +12,7 @@ import {
   parseResultPage,
 } from './parser.js';
 import { exists, awaitingMap } from './util.js';
-import { reportResults } from './reporter.js';
+import { generateReport } from './reporter.js';
 
 const { DateTime, Duration, Interval } = luxon;
 
@@ -54,7 +55,7 @@ export default async function slurper(opts) {
   const end = now.startOf('year');
   const start = end.minus({ year: 1 });
   const interval = TEMP_TESTING
-    ? Interval.fromISO('2019-01-18/P1D', { zone: 'utc' })
+    ? Interval.fromISO('2018-01-19/P1D', { zone: 'utc' })
     : Interval.fromDateTimes(start, end);
   logger.trace(
     {
@@ -126,9 +127,16 @@ export default async function slurper(opts) {
   const finalData = resultPages.map(({ page /* , metadata */ }) =>
     parseResultPage(page, logger),
   );
-  logger.debug({ finalData }, 'final data');
+  logger.trace({ finalData }, 'final data');
 
-  reportResults(finalData, true);
+  const csv = generateReport(finalData, opts.formatPublishing);
+
+  if (opts.output) {
+    await writeFile(opts.output, csv);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(csv);
+  }
 }
 
 async function fetchAllDatePages(interval, createProgress, logger) {

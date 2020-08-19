@@ -2,7 +2,7 @@ import cheerio from 'cheerio';
 import htmlparser from 'htmlparser2';
 // import select from 'css-select';
 
-import { mapObject } from './util.js';
+import { mapObject, identity } from './util.js';
 
 export function parseDatePage(date, breed, page, metadata, logger) {
   logger.debug(
@@ -83,10 +83,13 @@ const resultInfoSelectors = {
   entries: 'td[colspan="4"] + td + td[colspan="2"] font',
 };
 
-// ur data-driven handling of the results needs four pieces of information for
-// each kind: the selector to extract the text from the page, the name of the
-// collection (we could just pluralize the key!), the parent kind in the
-// hierarchy, and children collection pointers to "reset".
+// Our data-driven handling of the results needs five pieces of information for
+// each kind:
+//   * the selector to extract the text from the page
+//   * the name of the collection (we could just pluralize the key!)
+//   * the parent kind in the hierarchy
+//   * children collection pointers to "reset" (optional)
+//   * a text normalizer function (optional)
 const resultKinds = {
   section: [
     'td[colspan="5"]:nth-of-type(2)',
@@ -99,19 +102,18 @@ const resultKinds = {
     'classes',
     'section',
     ['placement'],
+    normalizeClass,
   ],
-  placement: ['td[align="right"]:nth-of-type(4)', 'placements', 'class'],
+  placement: [
+    'td[align="right"]:nth-of-type(4)',
+    'placements',
+    'class',
+    null,
+    normalizePlacement,
+  ],
   dog: ['td[align="right"]:nth-of-type(4) + td a', null, 'placement'],
   owners: ['td[align="right"]:nth-of-type(4) + td', null, 'placement'],
 };
-
-// const resultSectionSelectors = {
-//   section: 'td[colspan="5"]:nth-of-type(2)',
-//   class: 'td[colspan="5"]:nth-of-type(3)',
-//   placement: 'td[align="right"]:nth-of-type(4)',
-//   dog: 'td[align="right"]:nth-of-type(4) + td a',
-//   owners: 'td[align="right"]:nth-of-type(4) + td',
-// };
 
 export function parseResultPage(page, logger) {
   const extractedHtml = page; // a valid page!!!
@@ -175,19 +177,31 @@ export function parseResultPage(page, logger) {
       }]
     }
   */
+
   // Note that a section *may* have placements directly included, if no "class"
-  // data intervenes (this happens for the Breed Winners, like BOB, etc.)
-  //
-  // Because the accumulation is stateful, it's not a good match for
-  // Array.reduce()... or is it? (currentSection, currentClass,
-  // currentPlacement) exists outside the reducer.
+  // data intervenes (this happens for the Breed Winners, like BOB, etc.).  We
+  // also perform some data normalization here, rather than asking the report
+  // renderer to do it.
   const results = sorted.reduce(
     (memo, { kind, text }) => {
-      const [, collectionName, parentKind, kindsToReset] =
-        resultKinds[kind] ?? [];
+      const [
+        ,
+        collectionName,
+        parentKind,
+        kindsToReset,
+        normalizer = identity,
+      ] = resultKinds[kind] ?? [];
+
       // logger.trace(
       //   {
-      //     from: { kind, text, collectionName, parentKind, kindsToReset },
+      //     from: {
+      //       kind,
+      //       text,
+      //       collectionName,
+      //       parentKind,
+      //       kindsToReset,
+      //       normalizer,
+      //     },
       //     memo,
       //   },
       //   'reducing...',
@@ -202,18 +216,19 @@ export function parseResultPage(page, logger) {
         return memo;
       }
 
-      const item = { [kind]: text };
+      const normalized = normalizer(text);
+      const item =
+        typeof normalized === 'object' ? normalized : { [kind]: normalized };
 
-      const parent = memo.current[parentKind] ?? memo;
+      const parent = memo.temp.current[parentKind] ?? memo;
       if (collectionName) {
         parent[collectionName] = parent[collectionName] ?? [];
         parent[collectionName].push(item);
 
         // reset the "current" pointers for the kind (and children) to point to
         // the newly-added item.. this only matters for "collection-level" kinds
-        memo.current[kind] = item;
-        (kindsToReset ?? []).forEach((k) => {
-          memo.current[k] = item;
+        [kind, ...(kindsToReset ?? [])].forEach((k) => {
+          memo.temp.current[k] = item;
         });
       } else {
         // if there's no collection name (owner and dog), we need to graft it
@@ -237,24 +252,36 @@ export function parseResultPage(page, logger) {
             'cleaning...',
           );
           Object.assign(parent, match.groups);
+
+          // We also take advantage of knowing this happens when the placement
+          // information is "complete", and use it to build/modify/use the
+          // placement abbreviations ("1/WD/BOW/...").
+          const knownAbbrevs = memo.temp.winnerAbbrevs[parent.dog];
+          if (parent.abbrev) {
+            memo.temp.winnerAbbrevs[parent.dog] = knownAbbrevs
+              ? `${parent.abbrev}/${knownAbbrevs}`
+              : parent.abbrev;
+          } else if (knownAbbrevs) {
+            parent.placement = `${parent.placement}/${knownAbbrevs}`;
+          }
         }
       }
 
-      logger.trace(
-        {
-          from: { kind, text, collectionName, parentKind, kindsToReset },
-          memo,
-        },
-        'reduced',
-      );
+      // logger.trace(
+      //   {
+      //     from: { kind, text, collectionName, parentKind, kindsToReset },
+      //     memo,
+      //   },
+      //   'reduced',
+      // );
 
       return memo;
     },
-    { current: {} },
+    { temp: { current: {}, winnerAbbrevs: {} } },
   );
 
   // remove the temporary tracking info
-  delete results.current;
+  delete results.temp;
 
   // There is a redundant "Best of Breed/Variety Competition" section that we
   // don't need.  We detect it by looking for a last section with no classes.
@@ -268,7 +295,48 @@ export function parseResultPage(page, logger) {
   return { ...info, ...results };
 }
 
-// The AKC pages are horribly formatted, syntacticcally invalid "mostly HTML"
+// We also perform some normalizing...
+
+// We "cascade" top placements (breed winners) down into their individual class
+// placements, so you'll see things like "1/WD", or "1/WB/BOW/BOB".  We build
+// this placement suffix as we go.  We also offer normalizations of some
+// placements (like "Best of Breed or Variety" -> "Best of Breed"); these
+// totally make sense for some breeds that don't have "varieties", but may not
+// make sense for everyone.  (TODO: add a flag to turn this off, or maybe
+// "magically" know which breeds need it and which don't?)
+
+// A mapping from the AKC description of top placements to a list of
+// the abbreviation and optionally a "clean" (perhaps shortened) name.
+const placementInfo = {
+  'Best of Breed or Variety': ['BOB', 'Best of Breed'],
+  'Best of Opposite Sex': ['BOS'],
+  'Select Dog': ['SD'],
+  'Select Bitch': ['SB'],
+  'Best of Winners': ['BW'], // not BOW?
+  'Best Owner-Handled in Breed or Variety': ['BOH', 'Best Owner-Handled'],
+  'Winners Dog': ['W'],
+  'Reserve Winner Dog': ['RW'],
+  'Winners Bitch': ['W'],
+  'Reserve Winner Bitch': ['RW'],
+};
+
+const classNormalizations = {
+  'Open BLK TN WHT': 'Open BLK WHT TN',
+};
+
+function normalizePlacement(placement) {
+  const [abbrev, normalizedPlacement] = placementInfo[placement] ?? [];
+  return {
+    placement: normalizedPlacement ?? placement,
+    abbrev,
+  };
+}
+
+function normalizeClass(className) {
+  return classNormalizations[className] ?? className;
+}
+
+// The AKC pages are horribly formatted, syntactically invalid "mostly HTML"
 // messes. (*Two* <!doctype> tags?  Multiple <html> tags?  Really?!)  We do some
 // massaging of the page before handing it to a real html parser so that the
 // parser doesn't choke.  Event worse is that different kinds of page are
