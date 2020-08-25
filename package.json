@@ -2,35 +2,73 @@
   "name": "specialty-slurper",
   "version": "0.0.2",
   "description": "Tool to extract winners from AKC show results (for Basenji Specialties in particular)",
-  "main": "lib/app.js",
-  "bin": "lib/cli.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/JaredReisinger/specialty-slurper.git"
-  },
   "author": "Jared Reisinger",
   "license": "BSD-3-Clause",
-  "bugs": {
-    "url": "https://github.com/JaredReisinger/specialty-slurper/issues"
-  },
   "homepage": "https://github.com/JaredReisinger/specialty-slurper#readme",
+  "repository": "github:JaredReisinger/specialty-slurper",
+  "bugs": "https://github.com/JaredReisinger/specialty-slurper/issues",
+  "type": "module",
+  "main": "src/slurper.js",
+  "bin": "src/cli.js",
+  "files": [
+    "src/",
+    "!**/*.test.*"
+  ],
+  "scripts": {
+    "start": "node ./src/cli.js",
+    "test": "ava --verbose",
+    "test:watch": "npm run test -- --watch",
+    "test:coverage": "c8 --all --src src --exclude cli.js --exclude '**/*.test.js' --reporter lcov --reporter text npm run test",
+    "lint": "eslint --ext js,mjs --ignore-path .prettierignore ."
+  },
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "cached-request": "git+https://github.com/JaredReisinger/cached-request.git",
-    "chalk": "^2.3.0",
-    "commander": "^2.13.0",
-    "css-select": "^1.2.0",
+    "bent": "^7.3.9",
+    "cacache": "^15.0.5",
+    "cheerio": "^1.0.0-rc.3",
     "htmlparser2": "^3.9.0",
-    "log4js": "^0.6.29",
-    "moment": "^2.20.1",
+    "json2csv": "^5.0.1",
+    "luxon": "^1.24.1",
+    "pino": "^6.5.0",
+    "pino-pretty": "^4.1.0",
+    "pluralize": "^8.0.0",
     "progress": "^1.1.8",
-    "request": "^2.83.0",
-    "sprintf-js": "^1.1.1",
-    "throttled-request": "git+https://github.com/JaredReisinger/throttled-request.git",
-    "underscore": "^1.8.3",
-    "underscore.string": "^3.3.4"
+    "yargs": "^15.4.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^9.1.1",
+    "@commitlint/config-conventional": "^9.1.1",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/git": "^9.0.0",
+    "ava": "^3.11.1",
+    "c8": "^7.3.0",
+    "commitizen": "^4.1.2",
+    "cz-conventional-changelog": "^3.2.0",
+    "eslint": "^7.6.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "prettier": "^2.0.5",
+    "pretty-quick": "^2.0.1",
+    "semantic-release": "^17.1.1",
+    "testdouble": "^3.16.1"
+  },
+  "ava": {
+    "nodeArguments": [
+      "--loader=testdouble"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged && npm run lint",
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   }
 }

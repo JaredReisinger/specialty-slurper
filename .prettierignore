@@ -1,0 +1,8 @@
+package.json
+package-lock.json
+
+build/
+__generated__/
+
+# temp...
+lib/

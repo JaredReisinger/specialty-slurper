@@ -1,0 +1,36 @@
+root: true
+extends: [airbnb-base, plugin:prettier/recommended]
+
+plugins: [import]
+
+parserOptions:
+  ecmaVersion: 2020
+  sourceType: module
+  ecmaFeatures: {}
+
+rules:
+  arrow-parens: [error, always]
+  import/extensions: [error, ignorePackages]
+  no-param-reassign:
+    - error
+    - props: true
+      ignorePropertyModificationsFor: [draft, memo, acc]
+  no-underscore-dangle:
+    - error
+    - allowAfterThis: true
+      # allow: [_normalizeId]
+  no-use-before-define:
+    - error
+    - functions: false
+
+env:
+  node: true
+
+overrides:
+  - files: ['test/**', '**/*.test.js']
+    rules:
+      no-param-reassign:
+        - error
+        - props: true
+          ignorePropertyModificationsFor: [t]
+      # no-underscore-dangle: off
