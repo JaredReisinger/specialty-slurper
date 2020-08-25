@@ -18,7 +18,7 @@ script:
 jobs:
   include:
     - stage: test
-      node_js: lts/*
+      node_js: 14
       script: npm run test:coverage
       after_success: npm run codecov
     # - stage: release
