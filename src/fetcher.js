@@ -37,7 +37,7 @@ export async function fetchDatePage(date, breed, cacheDir, logger) {
   // Also, "breed" is a magic number (with trailing whitespace! who's working on
   // their software?!) that would be a pain to extract... but might be worth it
   // for performance reasons. ('Basenjis' => '402 ' => '402%20')
-  const breedId = breed === 'basenjis' ? '402%20' : '';
+  const breedId = breed === 'Basenji' ? '402%20' : '';
   const params = [
     `urlday=${date.toISODate()}`,
     `event_type=S`,
@@ -49,9 +49,7 @@ export async function fetchDatePage(date, breed, cacheDir, logger) {
 
   const requestUrl = `/apps/event_calendar/index.cfm?${params.join('&')}`;
 
-  const { metadata, page } = await fetchPage(requestUrl, cacheDir, logger);
-
-  return { date, breed, metadata, page };
+  return fetchPage(requestUrl, cacheDir, logger);
 }
 
 // TODO: allow per-fetch TTL?

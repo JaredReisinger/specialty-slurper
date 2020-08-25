@@ -1,6 +1,6 @@
 import test from 'ava';
 import * as td from 'testdouble';
-import luxon from 'luxon';
+// import luxon from 'luxon';
 
 import createLogger from './logger.js';
 
@@ -12,8 +12,8 @@ import {
   buildResultsFromKinds,
 } from './parser.js';
 
-const { DateTime } = luxon;
-const date = DateTime.fromISO('2020-01-01', { zone: 'utc' });
+// const { DateTime } = luxon;
+// const date = DateTime.fromISO('2020-01-01', { zone: 'utc' });
 
 const mockLogger = td.object(createLogger());
 
@@ -161,8 +161,6 @@ test('extractEventPage() - falls all the way back to beginning', (t) => {
 
 test('parseDatePage() - gets all event links', (t) => {
   const actual = parseDatePage(
-    date,
-    'Basenji',
     `
       <div class="calendar-list-item__info-title">
         <a href="link1">title 1</a>

@@ -1,3 +1,5 @@
+import pluralize from 'pluralize';
+
 export function identity(x) {
   return x;
 }
@@ -32,4 +34,20 @@ export function mapObject(obj, valueFn, keyFn = identity) {
       valueFn(value, key, i),
     ]),
   );
+}
+
+export function humanizeDuration(duration) {
+  const units = ['years', 'months', 'days'];
+  const amounts = duration.shiftTo(...units).toObject();
+  const parts = units
+    .map((unit) => {
+      const amount = amounts[unit];
+      if (amount > 0) {
+        return pluralize(unit, amount, true);
+      }
+      return null;
+    })
+    .filter(exists);
+
+  return parts.join(', ');
 }

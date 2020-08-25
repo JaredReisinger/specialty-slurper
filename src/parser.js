@@ -4,11 +4,8 @@ import htmlparser from 'htmlparser2';
 
 import { mapObject, identity } from './util.js';
 
-export function parseDatePage(date, breed, page, metadata, logger) {
-  logger.debug(
-    { date: date.toISODate(), breed, page: excerpt(page) },
-    'parsing date events page',
-  );
+export function parseDatePage(page, metadata, logger) {
+  logger.debug({ page: excerpt(page) }, 'parsing date events page');
 
   const extractedHtml = extractDatePage(page, logger);
   const $ = parseHtml(extractedHtml, logger);

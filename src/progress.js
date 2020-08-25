@@ -1,7 +1,40 @@
 import ProgressBar from 'progress';
 
+import { awaitingMap } from './util.js';
+
+const defaultLabelWidth = 15;
+
 export default function progressFactory(showProgress) {
-  return showProgress ? createProgress : createMockProgress;
+  const creatorFn = showProgress ? createProgress : createMockProgress;
+  return {
+    createProgress: creatorFn,
+    mapWithProgress: mapWithProgress.bind(null, creatorFn),
+    awaitingMapWithProgress: awaitingMapWithProgress.bind(null, creatorFn),
+  };
+}
+
+// We use the createProgress, map (tick), update(1) sequence so often that we
+// wrap that into a single helper.
+function mapWithProgress(creatorFn, label, arr, mapFn) {
+  const bar = creatorFn(label, arr.length);
+  const result = arr.map((input) => {
+    const output = mapFn(input);
+    bar.tick();
+    return output;
+  });
+  bar.update(1);
+  return result;
+}
+
+async function awaitingMapWithProgress(creatorFn, label, arr, mapFn) {
+  const bar = creatorFn(label, arr.length);
+  const result = await awaitingMap(arr, async (input) => {
+    const output = await mapFn(input);
+    bar.tick();
+    return output;
+  });
+  bar.update(1);
+  return result;
 }
 
 function createProgress(label, steps) {
@@ -9,7 +42,9 @@ function createProgress(label, steps) {
   // width, we subtract from the overall width using a representative string
   // (instead of hand-counting...)
   const paddedLabel =
-    label.length >= 8 ? label : `${label}${' '.repeat(8 - label.length)}`;
+    label.length >= defaultLabelWidth
+      ? label
+      : `${label}${' '.repeat(defaultLabelWidth - label.length)}`;
 
   const format = `${paddedLabel} [:bar] :percent complete, :etas remaining`;
 

@@ -1,6 +1,16 @@
 import test from 'ava';
 
-import { identity, exists, awaitingMap, mapObject } from './util.js';
+import luxon from 'luxon';
+
+import {
+  identity,
+  exists,
+  awaitingMap,
+  mapObject,
+  humanizeDuration,
+} from './util.js';
+
+const { Duration } = luxon;
 
 test('identity() - returns input', (t) => {
   [
@@ -97,5 +107,20 @@ test('mapObject() - keyFn adjusts keys', (t) => {
       cc: {},
       dd: ['four'],
     },
+  );
+});
+
+test('humanizeDuration() - creates a humanized string', (t) => {
+  t.is(humanizeDuration(Duration.fromISO('P1Y')), '1 year');
+});
+
+test('humanizeDuration() - handles plurals', (t) => {
+  t.is(humanizeDuration(Duration.fromISO('P2Y')), '2 years');
+});
+
+test('humanizeDuration() - handles complex durations', (t) => {
+  t.is(
+    humanizeDuration(Duration.fromISO('P1Y4M13D')),
+    '1 year, 4 months, 13 days',
   );
 });
