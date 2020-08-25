@@ -19,6 +19,7 @@
     "test": "ava --verbose",
     "test:watch": "npm run test -- --watch",
     "test:coverage": "c8 --all --src src --exclude cli.js --exclude '**/*.test.js' --reporter lcov --reporter text npm run test",
+    "codecov": "codecov",
     "lint": "eslint --ext js,mjs --ignore-path .prettierignore ."
   },
   "dependencies": {
@@ -41,6 +42,7 @@
     "@semantic-release/git": "^9.0.0",
     "ava": "^3.11.1",
     "c8": "^7.3.0",
+    "codecov": "^3.7.2",
     "commitizen": "^4.1.2",
     "cz-conventional-changelog": "^3.2.0",
     "eslint": "^7.6.0",
