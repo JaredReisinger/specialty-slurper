@@ -21,6 +21,7 @@ jobs:
       node_js: 14
       script: npm run test:coverage
       after_success: npm run codecov
+
     # - stage: release
     #   node_js: lts/*
     #   if: branch = master
@@ -31,3 +32,7 @@ jobs:
     #     skip_cleanup: true
     #     script:
     #       - npx semantic-release
+
+notifications:
+  slack:
+    secure: C80vDr1V4s0Pthfe8/2X7zGlHhC2tKK4LfFT6frYR8S13w8Goclw0rba249GN8IYTaTw0IDFVzN8WNuAVK5d4lm2ANvS2L+u5KGVjov28JEu0AnB2mEBLJWahfULCQ22UsXz1uZRHwMSwZt8LDHD5H+IOYNTFySPSmnJn42TREbAv2g7gy0If/UUYDXpYUZITNKslhVe2oL9tE2xlHvNhvvJpojoIDzB849c+t8nLe4CjFV/gM/ocrGCzWH9Bkf/VdEHPE6A0YAqk6dRtcROqE8trAvcv3f2MvO9axGZH+Ut8ljfdDDVLbhEwrf0UFxlpmr5vTpxlXDblwfVCnPHkiwf3pJhA3Gm/LZyjcWbW8UC3V2r3qqFPeMKo6QxLvKlJxQSY8xJ6DAKWxPV1TH4m73H9Iwo7sl4jiZKQZMrPpzP/achFHCE/p1+lurhL83oQBYlVlAf8CTfWmrEQb9KhO0Da47hBBR9mBmk+iRZFbQZqwH2r117d5jrdFp4ZhevQbIiXjjIyXE68u19JcVQ9oQ2bZejGCYdYYjawVWL/MXAYujkRZIyCg+sW79i3wqI2JRRBfx2ozV2vq4Vh4hTL1iMXnarFNsfOjs6IsMhwqjn1mJbyYq/yiQjDZPG467+TfMWyIobZQKSmHZOPhmQ3DTzJ/UECMOTwGOxxPMBoz0=
