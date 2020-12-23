@@ -44,8 +44,8 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          author_name: $GITHUB_WORKFLOW
-          fields: repo,message,commit,eventName,author,ref,job,took
+          author_name: ${{ github.workflow }}
+          fields: repo,message,eventName,ref,job,took,author,commit
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           MATRIX_CONTEXT: ${{ toJson(matrix) }}
